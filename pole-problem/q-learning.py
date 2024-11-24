@@ -1,5 +1,8 @@
+# https://github.com/Fumio-eisan/RL20200527/blob/master/CartPole_20200526.ipynb
+
 import gym
 import numpy as np
+
 
 env = gym.make("CartPole-v0")
 
@@ -8,6 +11,8 @@ max_number_of_steps = 200
 num_consecutive_iterations = 100
 num_episodes = 200
 last_time_steps = np.zeros(num_consecutive_iterations)
+
+q_table = np.random.uniform(low=-1, high=1, size=(4 ** 4, env.action_space.n))
 
 for episode in range(num_episodes):
     # 環境の初期化
