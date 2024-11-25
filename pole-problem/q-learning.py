@@ -93,8 +93,22 @@ class Agent:
             action = np.argmax(self.q_table[state])
             episode_reward = 0
 
+            for step in range(num_step_max):
+                observation, reward, done, info, _ = self.env.step(action)
             
+                if done and step < num_step_max - 1:
+                    reward -= num_step_max
+                episode_reward += reward
 
+                state_next = self.__digitize_state(observation)
+                self.uodate_q_table(state, action, reward, state_next)  
+                # 行動の選択
+                action = self.get_action(state_next, episode)
+                state = state_next
+                
+                # 学習の終了
+                if done:
+                    break
 
 env = gym.make("CartPole-v0")
 
