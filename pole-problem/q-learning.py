@@ -120,12 +120,13 @@ class Agent:
             print("Load q_table")
             self.q_table = np.load(f"{self.dir_current}/q_table.npy")
 
+    # 学習したエージェントでプレイ
     def play(self):
+        # レンダリングするためモードチェンジ
         self.env = gym.make("CartPole-v0", render_mode="human")
         observation, _ = self.env.reset()
         state = self.__digitize_state(observation)
         action = np.argmax(self.q_table[state])
-        episode_reward = 0
 
         for step in range(1000):
             self.env.render()
