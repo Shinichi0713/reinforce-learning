@@ -1,7 +1,7 @@
 # https://github.com/Fumio-eisan/RL20200527/blob/master/CartPole_20200526.ipynb
 import gym
 import numpy as np
-import time
+import time, os
 import math
 from statistics import mean, median
 import matplotlib.pyplot as plt
@@ -26,8 +26,8 @@ class Agent:
         self.q_table = np.random.uniform(low=-1, high=1, size=(num_state, self.env.action_space.n))
         # qテーブルの更新履歴
         self.q_table_update = [[math.floor(time.time()), 0]] * num_state
-
-        
+        self.dir_current = os.path.dirname(os.path.abspath(__file__))
+        self.__load_q_table()
 
     # 状態値の取得
     def __digitize_state(self, observation):
@@ -56,7 +56,6 @@ class Agent:
             )
         )
         return state
-
 
     def get_action(self, state, episode):
         epsilon = 0.5 * (1 / (episode + 1))
@@ -109,10 +108,35 @@ class Agent:
                 
                 # 学習の終了
                 if done:
+                    self.__save_q_table()
                     break
 
+    def __save_q_table(self):
+        print("Save q_table")
+        np.save(f"{self.dir_current}/q_table.npy", self.q_table)
+
+    def __load_q_table(self):
+        if os.path.exists(f"{self.dir_current}/q_table.npy"):
+            print("Load q_table")
+            self.q_table = np.load(f"{self.dir_current}/q_table.npy")
+
+    def play(self):
+        self.env = gym.make("CartPole-v0", render_mode="human")
+        observation, _ = self.env.reset()
+        state = self.__digitize_state(observation)
+        action = np.argmax(self.q_table[state])
+        episode_reward = 0
+
+        for step in range(1000):
+            self.env.render()
+            state = self.__digitize_state(observation)
+            action = np.argmax(self.q_table[state])
+            observation, reward, done, info, _ = self.env.step(action)
+            self.env.render()
+        self.env.close()
 
 
 if __name__ == "__main__":
     agent = Agent()
-    agent.train(100, 200)
+    # agent.train(100, 200)
+    agent.play()
