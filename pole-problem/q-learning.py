@@ -6,10 +6,13 @@ import math
 from statistics import mean, median
 import matplotlib.pyplot as plt
 
+
+# pole問題のエージェント
+# オフポリシー学習ベースの学習→学習した結果をplayで再現
 class Agent:
     def __init__(self):
         self.env = gym.make("CartPole-v0")
-        # 観察値の等差数列
+        # 観察値の等差数列(離散化する)
         self.bins = {
             'cart_position': np.linspace(-2.4, 2.4, 3)[1:-1],
             'cart_velocity': np.linspace(-3, 3, 5)[1:-1],
@@ -24,8 +27,10 @@ class Agent:
             * (len(self.bins['pole_velocity']) + 1)
         )
         self.q_table = np.random.uniform(low=-1, high=1, size=(num_state, self.env.action_space.n))
-        # qテーブルの更新履歴
+        # qテーブルの更新履歴(一応取っておく。これ自体はQ学習云々とはかかわりなし)
         self.q_table_update = [[math.floor(time.time()), 0]] * num_state
+
+        # Qテーブルの保存先。基準はカレント
         self.dir_current = os.path.dirname(os.path.abspath(__file__))
         self.__load_q_table()
 
