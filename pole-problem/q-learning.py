@@ -88,7 +88,8 @@ class Agent:
         self.episode_rewards_median = []
 
         for episode in range(num_episode):
-            observation = self.env.reset()
+            print(f"Episode: {episode}")
+            observation, _ = self.env.reset()
             state = self.__digitize_state(observation)
             action = np.argmax(self.q_table[state])
             episode_reward = 0
@@ -101,7 +102,7 @@ class Agent:
                 episode_reward += reward
 
                 state_next = self.__digitize_state(observation)
-                self.uodate_q_table(state, action, reward, state_next)  
+                self.update_q_table(state, action, reward, state_next)  
                 # 行動の選択
                 action = self.get_action(state_next, episode)
                 state = state_next
@@ -110,40 +111,8 @@ class Agent:
                 if done:
                     break
 
-env = gym.make("CartPole-v0")
-
-goal_average_steps = 195
-max_number_of_steps = 200
-num_consecutive_iterations = 100
-num_episodes = 200
-last_time_steps = np.zeros(num_consecutive_iterations)
-
-q_table = np.random.uniform(low=-1, high=1, size=(4 ** 4, env.action_space.n))
-
-def free_action():
-    for episode in range(num_episodes):
-        # 環境の初期化
-        observation = env.reset()
-
-        episode_reward = 0
-        for t in range(max_number_of_steps):
-            # CartPoleの描画
-            env.render()
-            # ランダムで行動の選択
-            action = np.random.choice([0, 1])
-
-            # 行動の実行とフィードバックの取得
-            observation, reward, done, info, _ = env.step(action)
-            episode_reward += reward
-
-            if done:
-                print('%d Episode finished after %d time steps / mean %f' % (episode, t + 1,
-                    last_time_steps.mean()))
-                last_time_steps = np.hstack((last_time_steps[1:], [episode_reward]))
-                break
-
-        if (last_time_steps.mean() >= goal_average_steps): # 直近の100エピソードが195以上であれば成功
-            print('Episode %d train agent successfuly!' % episode)
-            break
 
 
+if __name__ == "__main__":
+    agent = Agent()
+    agent.train(100, 200)
