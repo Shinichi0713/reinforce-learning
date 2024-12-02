@@ -76,7 +76,7 @@ class Agent:
         gamma = 0.99
         q_value_max = max(self.q_table[state_next])
         q_value_current = self.q_table[state, action]
-        # qテーブルの更新
+        # qテーブルの更新＝Q学習で更新
         self.q_table[state, action] = q_value_current \
             + alpha * (reward + gamma * q_value_max - q_value_current)
         self.q_table_update[state] = [math.floor(time.time()), self.q_table_update[state][1] + 1]
