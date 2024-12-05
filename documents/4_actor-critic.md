@@ -218,16 +218,13 @@ env.close()
 
 **∇**J**(**θ**)**∝**∑**s**∈**S**μ**(**s**)**∑**a**∈**A**∇**π**θ**(**a**|**s**)**Q**π**θ**(**s**,**a**)
 
-
 最適な方策を見出すのは難しいため、Q学習では価値関数を最適化していくという考え方
 
 直接最適な方策を見つけ出すアプローチが方策勾配法
 
 方策をパラメータで表された関数とし、パラメータを学習することで方策を学習する方法
 
-
 ![1733259328707](image/4_actor-critic/1733259328707.png)
-
 
 ## アドバンテージ関数
 
@@ -244,3 +241,15 @@ DP: 直後の状態の価値から学習
 A2C(Advantage Actor-Critic)とは、A3C(Asynchronous Advantage Actor-Critic)から、非同期の部分を抜いたもの
 
 ![1733261246269](image/4_actor-critic/1733261246269.png)
+
+[AdvantageでActor-Criticを学習する際の注意点. Advantageを使ったActor-Criticの学習で、ちょっとはまった点が… | by piqcy | programming-soda | Medium](https://medium.com/programming-soda/advantage%E3%81%A7actor-critic%E3%82%92%E5%AD%A6%E7%BF%92%E3%81%99%E3%82%8B%E9%9A%9B%E3%81%AE%E6%B3%A8%E6%84%8F%E7%82%B9-a1b3925bc3e6)
+
+
+> Q関数のバリアンスが大きくなる原因は、Q関数が状態変数と行動変数の両方に依存するため変数ごとのバリアンスが重なってQ関数のバリアンスを大きくしていることによる。
+>
+> ![1733433112288](image/4_actor-critic/1733433112288.png)
+>
+> ベースライン関数として価値関数π( )を選んだとき、Q関数を価値関数でシフトした関数のこと
+> をアドバンテージ関数（advantage function）と呼ぶ。
+>
+> ![1733433148777](image/4_actor-critic/1733433148777.png)
