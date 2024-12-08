@@ -20,6 +20,22 @@ class HuberLoss(nn.Module):
         loss = torch.where(cond, L2, L1)
         return torch.mean(loss)
 
+# 経験再生用のメモリ
+class Memory:
+    def __init__(self, size_max=1000):
+        self.buffer = deque(maxlen=size_max)
+
+    def add(self, experience):
+        self.buffer.append(experience)
+
+    def sample(self, batch_size):
+        idx = np.random.choice(len(self.buffer), size=batch_size, replace=False)
+        return [self.buffer[ii] for ii in idx]
+    
+    def len(self):
+        return len(self.buffer)
+
+
 
 
 if __name__ == "__main__":
