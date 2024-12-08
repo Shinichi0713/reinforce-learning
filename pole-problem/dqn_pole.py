@@ -9,7 +9,7 @@ from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
-from keras.utils import plot_model
+# from keras.utils import plot_model
 from tensorflow.keras import backend as K
 import tensorflow as tf
 
@@ -51,7 +51,7 @@ class Agent():
 
         # ネットワークパラメータパス
         dir_currnet = os.path.dirname(os.path.abspath(__file__))
-        self.path_nn = f"{dir_currnet}/nn_parameter.h5"
+        self.path_nn = f"{dir_currnet}/nn_parameter.weights.h5"
 
         self.load_nn()
 
@@ -117,7 +117,7 @@ class Env():
         islearned = 0  # 学習が終わったフラグ
         isrender = 0  # 描画フラグ
         # ---
-        learning_rate = 0.00001         # Q-networkの学習係数
+        
         memory_size = 10000            # バッファーメモリの大きさ
         batch_size = 32                # Q-networkを更新するバッチの大記載
         memory = Memory(max_size=memory_size)
@@ -163,6 +163,19 @@ class Env():
                     isrender = 1
                 agent.save_nn()
 
+    def play(self):
+        self.env = gym.make("CartPole-v0", render_mode="human")
+        episode = 1e6
+        state = self.__init_env()       # 学習のエピソードごとに環境初期化
+        for step in range(1000):
+            self.env.render()
+            action = agent.get_action(state, episode)
+            next_state, reward, done, info, _ = self.env.step(action)
+            state = np.reshape(next_state, [1, 4])
+            self.env.render()
+        self.env.close()
+
+
     def __init_env(self):
         self.env.reset()  # cartPoleの環境初期化
         observation, reward, done, info, _ = self.env.step(self.env.action_space.sample())  # 1step目は適当な行動をとる
@@ -173,11 +186,17 @@ class Env():
 
 if __name__ == "__main__":
     print("start dqn pole problem")
-
-    agent = Agent()
-    env = Env()
-    env.train(agent)
+    is_train = False
+    if is_train:
+        learning_rate = 0.00001         # Q-networkの学習係数
+        agent = Agent(learning_rate)
+        env = Env()
+        env.train(agent)
+    else:
+        agent = Agent()
+        env = Env()
+        env.play()
 
     ## 参考サイト
-    https://note.com/e_dao/n/n8228e4897bcf
-    https://qiita.com/sugulu_Ogawa_ISID/items/bc7c70e6658f204f85f9
+    # https://note.com/e_dao/n/n8228e4897bcf
+    # https://qiita.com/sugulu_Ogawa_ISID/items/bc7c70e6658f204f85f9
