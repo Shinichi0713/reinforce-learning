@@ -244,7 +244,6 @@ A2C(Advantage Actor-Critic)とは、A3C(Asynchronous Advantage Actor-Critic)か�
 
 [AdvantageでActor-Criticを学習する際の注意点. Advantageを使ったActor-Criticの学習で、ちょっとはまった点が… | by piqcy | programming-soda | Medium](https://medium.com/programming-soda/advantage%E3%81%A7actor-critic%E3%82%92%E5%AD%A6%E7%BF%92%E3%81%99%E3%82%8B%E9%9A%9B%E3%81%AE%E6%B3%A8%E6%84%8F%E7%82%B9-a1b3925bc3e6)
 
-
 > Q関数のバリアンスが大きくなる原因は、Q関数が状態変数と行動変数の両方に依存するため変数ごとのバリアンスが重なってQ関数のバリアンスを大きくしていることによる。
 >
 > ![1733433112288](image/4_actor-critic/1733433112288.png)
