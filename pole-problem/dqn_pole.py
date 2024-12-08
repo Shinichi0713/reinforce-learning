@@ -39,6 +39,8 @@ class Memory:
 # エージェント
 class Agent():
     def __init__(self, learning_rate=0.01, state_size=4, action_size=2, hidden_size=100):
+        print("model initialized")
+        # モデルはkeras製
         self.model = Sequential()
         self.model.add(Dense(hidden_size, activation='relu', input_dim=state_size))
         self.model.add(Dense(hidden_size, activation='relu'))
@@ -46,6 +48,12 @@ class Agent():
         self.optimizer = Adam(lr=learning_rate)  # 誤差を減らす学習方法はAdam
         # モデルコンパイル
         self.model.compile(loss=huberloss, optimizer=self.optimizer)
+
+        # ネットワークパラメータパス
+        dir_currnet = os.path.dirname(__file__)
+        self.path_nn = f"{dir_currnet}/nn_parameter.h5"
+
+        self.load_nn()
 
     # 重みの学習
     def replay(self, memory, batch_size, gamma, targetQN):
@@ -84,11 +92,44 @@ class Agent():
  
         return action
 
+    def save_nn(self):
+        self.model.save_weights(self.path_nn)
+    
+    def load_nn(self):
+        if os.path.exists(self.path_nn):
+            print("load nn parameter")
+            self.model.load_weights(self.path_nn)
+        else:
+            print("start default nn")
+
+class Env():
+    def __init__(self):
+        self.env = gym.make("CartPole-v0")
+        
+    def train(self, agent):
+        num_episodes = 299  # 総試行回数
+        max_number_of_steps = 200  # 1試行のstep数
+        goal_average_reward = 195  # この報酬を超えると学習終了
+        num_consecutive_iterations = 10  # 学習完了評価の平均計算を行う試行回数
+        total_reward_vec = np.zeros(num_consecutive_iterations)  # 各試行の報酬を格納
+        gamma = 0.99    # 割引係数
+        islearned = 0  # 学習が終わったフラグ
+        isrender = 0  # 描画フラグ
+        # ---
+        learning_rate = 0.00001         # Q-networkの学習係数
+        memory_size = 10000            # バッファーメモリの大きさ
+        batch_size = 32                # Q-networkを更新するバッチの大記載
+
+        for episode in range(num_episodes):  # 試行数分繰り返す
+            state = self.__init_env()       # 学習のエピソードごとに環境初期化
+            episode_reward = 0
 
 
-
-
-
+    def __init_env(self):
+        self.env.reset()  # cartPoleの環境初期化
+        state, reward, done, _ = self.env.step(self.env.action_space.sample())  # 1step目は適当な行動をとる
+        state = np.reshape(state, [1, 4])   # list型のstateを、1行4列の行列に変換
+        return state
 
 
 
