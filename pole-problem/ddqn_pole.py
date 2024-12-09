@@ -35,8 +35,21 @@ class Memory:
     def len(self):
         return len(self.buffer)
 
-
-
+# エージェント
+class Agent():
+    def __init__(self, learning_rate=0.01, state_size=4, action_size=2, hidden_size=100):
+        # モデルはkeras製
+        self.model=nn.Sequential(
+            nn.Linear(state_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, action_size)
+        )
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
+        
 
 if __name__ == "__main__":
     x_true = torch.tensor([1, 2, 3, 4], dtype=torch.float32)
