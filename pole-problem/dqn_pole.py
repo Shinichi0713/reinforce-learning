@@ -57,7 +57,7 @@ class Agent():
         self.load_nn()
 
     # 重みの学習
-    def replay(self, memory, batch_size, gamma, targetQN):
+    def replay(self, memory, batch_size, gamma):
         inputs = np.zeros((batch_size, 4))
         targets = np.zeros((batch_size, 2))
         # バッチサイズ分の経験を取得

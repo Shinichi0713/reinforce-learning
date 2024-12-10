@@ -50,6 +50,21 @@ class Agent():
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         
+    def train_replay(self, experience, size_batch, gamma):
+        if len(experience) < size_batch:
+            return
+        mini_batch =experience.sample(size_batch)
+        # バッチ分の学習
+        for i, (state, action, reward, next_state) in enumerate(mini_batch):
+            state = torch.FloatTensor(state).unsqueeze(0)
+            next_state = torch.FloatTensor(next_state).unsqueeze(0)
+            target = reward
+            # if not (next_state_b == np.zeros(state_b.shape)).all(axis=1): は、次の状態 next_state_b がゼロの状態であるかどうかをチェック
+            if not (next_state == torch.zeros(state.shape).all(axis=1)):
+                ret_model = self.model.predict(next_state)[0]
+                next_action = np.argmax(ret_model)  # Q学習的な解釈
+                # Q学習の更新式適用
+                target = reward + gamma * torch.max(self.model(next_state)[0][next_action]).item()
 
 if __name__ == "__main__":
     x_true = torch.tensor([1, 2, 3, 4], dtype=torch.float32)
