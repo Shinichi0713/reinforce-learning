@@ -49,8 +49,13 @@ class Agent():
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
+
+        self.is_prepare_train = False
         
     def train_replay(self, experience, size_batch, gamma):
+        # train準備
+        self.prepare_train()
+
         if len(experience) < size_batch:
             return
         mini_batch =experience.sample(size_batch)
@@ -65,6 +70,24 @@ class Agent():
                 next_action = np.argmax(ret_model)  # Q学習的な解釈
                 # Q学習の更新式適用
                 target = reward + gamma * torch.max(self.model(next_state)[0][next_action]).item()
+            predict = self.model(state)
+            target_f = predict.clone()
+            target_f[0][action] = target
+            self.optimizer.zero_grad()
+            # ロスは状態から予測された行動価値と、次の状態から予測された行動価値の差
+            loss = criterion(target_f, predict)
+            loss.backward()
+            self.optimizer.step()
+
+            if self.epsilon > self.epsilon_min:
+                self.epsilon *= self.epsilon_decay
+
+    def prepare_train(self):
+        if not self.is_prepare_train:
+            self.epsilon = 0.1
+            self.epsilon_min = 1e-6
+
+            self.is_prepare_train = True
 
 if __name__ == "__main__":
     x_true = torch.tensor([1, 2, 3, 4], dtype=torch.float32)
