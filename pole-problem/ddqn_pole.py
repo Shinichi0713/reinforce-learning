@@ -72,13 +72,14 @@ class Agent():
                 target = reward + gamma * torch.max(self.model(next_state)[0][next_action]).item()
             predict = self.model(state)
             target_f = predict.clone()
+            # バッチ化されても、データ数が1→予測を次の価値関数に更新
             target_f[0][action] = target
             self.optimizer.zero_grad()
             # ロスは状態から予測された行動価値と、次の状態から予測された行動価値の差
             loss = criterion(target_f, predict)
             loss.backward()
             self.optimizer.step()
-
+            
             if self.epsilon > self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
 
