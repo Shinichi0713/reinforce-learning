@@ -49,7 +49,7 @@ class Agent():
         self.optimizer = Adam(learning_rate=learning_rate)  # 誤差を減らす学習方法はAdam
         # モデルコンパイル
         self.model.compile(loss=huberloss, optimizer=self.optimizer)
-
+        print(self.model.summary())
         # ネットワークパラメータパス
         dir_currnet = os.path.dirname(os.path.abspath(__file__))
         self.path_nn = f"{dir_currnet}/nn_parameter.weights.h5"

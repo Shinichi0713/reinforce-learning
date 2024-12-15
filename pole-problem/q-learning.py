@@ -106,7 +106,7 @@ class Agent:
                 episode_reward += reward
 
                 state_next = self.__digitize_state(observation)
-                self.update_q_table(state, action, reward, state_next)  
+                self.update_q_table(state, action, reward, state_next) 
                 # 行動の選択
                 action = self.get_action(state_next, episode)
                 state = state_next
