@@ -118,7 +118,7 @@ class Env():
         total_reward_vec = np.zeros(num_consecutive_iterations)  # 各試行の報酬を格納
         gamma = 0.99    # 割引係数
         islearned = False  # 学習が終わったフラグ
-        
+        epsilon = 0.99
         memory_size = 10000            # バッファーメモリの大きさ
         batch_size = 32                # Q-networkを更新するバッチの大記載
         memory = Memory(max_size=memory_size)
@@ -131,14 +131,10 @@ class Env():
                 next_state, reward, done, info = self.env.step(action)
                 next_state = np.reshape(next_state, [1, 4])
             # reward clip
-            if done:
-                next_state = np.zeros(state.shape)  # 次の状態s_{t+1}はない
-                if t < 195:
-                    reward = -1  # 報酬クリッピング、報酬は1, 0, -1に固定
-                else:
-                    reward = 1  # 立ったまま195step超えて終了時は報酬
+            if reward <= -1:
+                reward = -1
             else:
-                reward = 0
+                reward = 1
 
             episode_reward += reward
             memory.add((state, action, reward, next_state, done)) 
@@ -146,6 +142,7 @@ class Env():
 
             if len(memory.buffer) > batch_size and not islearned:
                 agent.replay_train(memory, batch_size, gamma)
+                epsilon *= 0.95
             
             # 1施行終了時の処理
             if done:
@@ -154,7 +151,11 @@ class Env():
                 break
 
         # 収束判断
-        
+        if total_reward_vec.mean() >= goal_average_reward:
+            print('Episode %d train agent successfuly!' % episode)
+            islearned = True
+            # モデルパラメータ保存
+            agent.save_nn()
 
 
     def __init_env(self):
@@ -162,3 +163,16 @@ class Env():
         observation, reward, done, info, _ = self.env.step(self.env.action_space.sample())  # 1step目は適当な行動をとる
         state = np.reshape(observation, [1, 4])   # list型のstateを、1行4列の行列に変換
         return state
+    
+if __name__ == "__main__":
+    print("start dqn pole problem")
+    is_train = True
+    if is_train:
+        learning_rate = 0.00001         # Q-networkの学習係数
+        agent = Agent(learning_rate)
+        env = Env()
+        env.train(agent)
+    else:
+        agent = Agent()
+        env = Env()
+        env.play()
