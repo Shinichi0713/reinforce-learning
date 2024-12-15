@@ -121,26 +121,30 @@ class Env():
         epsilon = 0.99
         memory_size = 10000            # バッファーメモリの大きさ
         batch_size = 32                # Q-networkを更新するバッチの大記載
-        memory = Memory(max_size=memory_size)
+        memory = Memory(memory_size)
 
         for episode in range(num_episodes):  # 試行数分繰り返す
             episode_reward = 0
             state = self.__init_env()
             for t in range(max_number_of_steps + 1):
                 action = agent.get_action(state, episode)
-                next_state, reward, done, info = self.env.step(action)
+                next_state, reward, done, info, _ = self.env.step(action)
                 next_state = np.reshape(next_state, [1, 4])
             # reward clip
-            if reward <= -1:
-                reward = -1
+            if done:
+                next_state = np.zeros(state.shape)  # 次の状態s_{t+1}はない
+                if t < 195:
+                    reward = -1  # 報酬クリッピング、報酬は1, 0, -1に固定
+                else:
+                    reward = 1  # 立ったまま195step超えて終了時は報酬
             else:
-                reward = 1
+                reward = 0 
 
             episode_reward += reward
             memory.add((state, action, reward, next_state, done)) 
             state = next_state
 
-            if len(memory.buffer) > batch_size and not islearned:
+            if memory.len() > batch_size and not islearned:
                 agent.replay_train(memory, batch_size, gamma)
                 epsilon *= 0.95
             
