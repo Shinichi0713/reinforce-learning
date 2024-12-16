@@ -81,15 +81,14 @@ class Agent():
             next_state = torch.FloatTensor(next_state).to(self.device)
             
             # あるべき価値関数の計算
-            next_q_values = self.model(next_state)
             if not done:
+                next_q_values = self.model(next_state)
                 target = reward + gamma * torch.max(next_q_values).item()
             else:
                 target = reward
             target_f = self.model(state)
-            target_predict = target_f.clone()
             target_f[0][action] = target
-            loss = self.loss_fn(target_f, target_predict)
+            loss = self.loss_fn(target_f, self.model(state))
 
             self.optimizer.zero_grad()
             loss.backward()
@@ -132,8 +131,8 @@ class Env():
                 next_state = np.reshape(next_state, [1, 4])
                 # reward clip
                 if done:
-                    next_state = np.zeros(state.shape)  # 次の状態s_{t+1}はない
-                    if t < 195:
+                    # next_state = np.zeros(state.shape)  # 次の状態s_{t+1}はない
+                    if reward < -1:
                         reward = -1  # 報酬クリッピング、報酬は1, 0, -1に固定
                     else:
                         reward = 1  # 立ったまま195step超えて終了時は報酬
