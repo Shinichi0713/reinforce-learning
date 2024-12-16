@@ -51,7 +51,7 @@ class Agent():
         self.loss_fn = HuberLoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         dir_current = os.path.dirname(os.path.abspath(__file__))
-        self.path_nn = f"{dir_current}/nn_parameter.weights.pth"
+        self.path_nn = f"{dir_current}/nn_parameter.pth"
         self.__load_nn()
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -153,12 +153,12 @@ class Env():
                     print('%d Episode finished after %f time steps / mean %f' % (episode, t + 1, total_reward_vec.mean()))
                     break
 
-        # 収束判断
-        if total_reward_vec.mean() >= goal_average_reward:
-            print('Episode %d train agent successfuly!' % episode)
-            islearned = True
-            # モデルパラメータ保存
-            agent.save_nn()
+            # 収束判断
+            if total_reward_vec.mean() >= goal_average_reward:
+                print('Episode %d train agent successfuly!' % episode)
+                islearned = True
+                # モデルパラメータ保存
+                agent.save_nn()
 
 
     def __init_env(self):
@@ -168,16 +168,18 @@ class Env():
         return state
     
     def play(self, agent):
+        self.env = gym.make("CartPole-v0", render_mode="human")
         agent.model.eval()
         state = self.__init_env()
         with torch.no_grad():
-            for _ in range(200):
+            for _ in range(400):
                 self.env.render()
                 action = agent.get_action(state, 0)
                 next_state, reward, done, info, _ = self.env.step(action)
                 state = np.reshape(next_state, [1, 4])
-                if done:
-                    break
+                
+                # if done:
+                #     break
         self.env.close()
 
 if __name__ == "__main__":
