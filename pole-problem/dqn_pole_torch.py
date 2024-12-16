@@ -167,6 +167,19 @@ class Env():
         state = np.reshape(observation, [1, 4])   # list型のstateを、1行4列の行列に変換
         return state
     
+    def play(self, agent):
+        agent.model.eval()
+        state = self.__init_env()
+        with torch.no_grad():
+            for _ in range(200):
+                self.env.render()
+                action = agent.get_action(state, 0)
+                next_state, reward, done, info, _ = self.env.step(action)
+                state = np.reshape(next_state, [1, 4])
+                if done:
+                    break
+        self.env.close()
+
 if __name__ == "__main__":
     print("start dqn pole problem")
     is_train = True
@@ -178,4 +191,4 @@ if __name__ == "__main__":
     else:
         agent = Agent()
         env = Env()
-        env.play()
+        env.play(agent)
