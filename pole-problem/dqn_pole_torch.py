@@ -130,29 +130,29 @@ class Env():
                 action = agent.get_action(state, episode)
                 next_state, reward, done, info, _ = self.env.step(action)
                 next_state = np.reshape(next_state, [1, 4])
-            # reward clip
-            if done:
-                next_state = np.zeros(state.shape)  # 次の状態s_{t+1}はない
-                if t < 195:
-                    reward = -1  # 報酬クリッピング、報酬は1, 0, -1に固定
+                # reward clip
+                if done:
+                    next_state = np.zeros(state.shape)  # 次の状態s_{t+1}はない
+                    if t < 195:
+                        reward = -1  # 報酬クリッピング、報酬は1, 0, -1に固定
+                    else:
+                        reward = 1  # 立ったまま195step超えて終了時は報酬
                 else:
-                    reward = 1  # 立ったまま195step超えて終了時は報酬
-            else:
-                reward = 0 
+                    reward = 0 
 
-            episode_reward += reward
-            memory.add((state, action, reward, next_state, done)) 
-            state = next_state
+                episode_reward += reward
+                memory.add((state, action, reward, next_state, done)) 
+                state = next_state
 
-            if memory.len() > batch_size and not islearned:
-                agent.replay_train(memory, batch_size, gamma)
-                epsilon *= 0.95
+                if memory.len() > batch_size and not islearned:
+                    agent.replay_train(memory, batch_size, gamma)
+                    epsilon *= 0.95
             
-            # 1施行終了時の処理
-            if done:
-                total_reward_vec = np.hstack((total_reward_vec[1:], episode_reward))  # 報酬を記録
-                print('%d Episode finished after %f time steps / mean %f' % (episode, t + 1, total_reward_vec.mean()))
-                break
+                # 1施行終了時の処理
+                if done:
+                    total_reward_vec = np.hstack((total_reward_vec[1:], episode_reward))  # 報酬を記録
+                    print('%d Episode finished after %f time steps / mean %f' % (episode, t + 1, total_reward_vec.mean()))
+                    break
 
         # 収束判断
         if total_reward_vec.mean() >= goal_average_reward:
