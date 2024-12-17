@@ -110,6 +110,9 @@ class Env():
     def __init__(self):
         self.env = gym.make("CartPole-v0")
 
+        # action_size = self.env.action_space.n
+        # print("action_size", action_size)
+
     def train(self, agent, episodes=1000, batch_size=32, gamma=0.99):
         num_episodes = 300  # 総試行回数
         max_number_of_steps = 200  # 1試行のstep数
@@ -152,11 +155,11 @@ class Env():
                     agent.replay_train(memory, batch_size, gamma)
                     epsilon *= 0.95
             
-                # 1施行終了時の処理
-                if done:
-                    total_reward_vec = np.hstack((total_reward_vec[1:], episode_reward))  # 報酬を記録
-                    print('%d Episode finished after %f time steps / mean %f' % (episode, t + 1, total_reward_vec.mean()))
-                    break
+            # 1施行終了時の処理
+            if done:
+                total_reward_vec = np.hstack((total_reward_vec[1:], episode_reward))  # 報酬を記録
+                print('%d Episode finished after %f time steps / mean %f' % (episode, t + 1, total_reward_vec.mean()))
+                break
 
             # 収束判断
             # if total_reward_vec.mean() >= goal_average_reward:
@@ -189,7 +192,7 @@ class Env():
 
 if __name__ == "__main__":
     print("start dqn pole problem")
-    is_train = False
+    is_train = True
     if is_train:
         learning_rate = 1e-6         # Q-networkの学習係数
         agent = Agent(learning_rate)
