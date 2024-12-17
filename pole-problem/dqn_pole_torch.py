@@ -48,7 +48,8 @@ class Agent():
             nn.ReLU(),
             nn.Linear(hidden_size, action_size)
         )
-        self.loss_fn = HuberLoss()
+        # self.loss_fn = HuberLoss()
+        self.loss_fn = nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         dir_current = os.path.dirname(os.path.abspath(__file__))
         self.path_nn = f"{dir_current}/nn_parameter.pth"
@@ -126,18 +127,22 @@ class Env():
             episode_reward = 0
             state = self.__init_env()
             for t in range(max_number_of_steps + 1):
-                action = agent.get_action(state, episode)
+                action = agent.get_action(state, epsilon)
                 next_state, reward, done, info, _ = self.env.step(action)
                 next_state = np.reshape(next_state, [1, 4])
                 # reward clip
-                if done:
-                    # next_state = np.zeros(state.shape)  # 次の状態s_{t+1}はない
-                    if reward < -1:
-                        reward = -1  # 報酬クリッピング、報酬は1, 0, -1に固定
-                    else:
-                        reward = 1  # 立ったまま195step超えて終了時は報酬
+                # if done:
+                #     # next_state = np.zeros(state.shape)  # 次の状態s_{t+1}はない
+                #     if reward < -1:
+                #         reward = -1  # 報酬クリッピング、報酬は1, 0, -1に固定
+                #     else:
+                #         reward = 1  # 立ったまま195step超えて終了時は報酬
+                # else:
+                #     reward = 0 
+                if reward < -1:
+                    reward = -1
                 else:
-                    reward = 0 
+                    reward = 1
 
                 episode_reward += reward
                 memory.add((state, action, reward, next_state, done)) 
@@ -154,11 +159,11 @@ class Env():
                     break
 
             # 収束判断
-            if total_reward_vec.mean() >= goal_average_reward:
-                print('Episode %d train agent successfuly!' % episode)
-                islearned = True
-                # モデルパラメータ保存
-                agent.save_nn()
+            # if total_reward_vec.mean() >= goal_average_reward:
+            print('Episode %d train agent successfuly!' % episode)
+            islearned = True
+            # モデルパラメータ保存
+            agent.save_nn()
 
 
     def __init_env(self):
@@ -172,7 +177,7 @@ class Env():
         agent.model.eval()
         state = self.__init_env()
         with torch.no_grad():
-            for _ in range(400):
+            for _ in range(200):
                 self.env.render()
                 action = agent.get_action(state, 0)
                 next_state, reward, done, info, _ = self.env.step(action)
@@ -184,9 +189,9 @@ class Env():
 
 if __name__ == "__main__":
     print("start dqn pole problem")
-    is_train = True
+    is_train = False
     if is_train:
-        learning_rate = 0.00001         # Q-networkの学習係数
+        learning_rate = 1e-6         # Q-networkの学習係数
         agent = Agent(learning_rate)
         env = Env()
         env.train(agent)
