@@ -46,7 +46,8 @@ class Agent():
             nn.ReLU(),
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
-            nn.Linear(hidden_size, action_size)
+            nn.Linear(hidden_size, action_size),
+            # nn.Softmax(dim=1)
         )
         # self.loss_fn = HuberLoss()
         self.loss_fn = nn.MSELoss()
@@ -68,6 +69,7 @@ class Agent():
         self.model.eval()
         self.model.cpu()
         torch.save(self.model.state_dict(), self.path_nn)
+        self.model.to(self.device)
 
     def replay_train(self, memory, batch_size, gamma):
         if memory.len() < batch_size:
@@ -97,7 +99,7 @@ class Agent():
 
 
     def get_action(self, state, epsilon):
-        if np.random.rand() < epsilon:
+        if np.random.rand() > epsilon:
             return np.random.choice(2)
         else:
             state = torch.FloatTensor(state).to(self.device)
@@ -119,7 +121,7 @@ class Env():
         goal_average_reward = 195  # この報酬を超えると学習終了
         num_consecutive_iterations = 10  # 学習完了評価の平均計算を行う試行回数
         total_reward_vec = np.zeros(num_consecutive_iterations)  # 各試行の報酬を格納
-        gamma = 0.99    # 割引係数
+        gamma = 0.95    # 割引係数
         islearned = False  # 学習が終わったフラグ
         epsilon = 0.99
         memory_size = 10000            # バッファーメモリの大きさ
@@ -144,8 +146,10 @@ class Env():
                 #     reward = 0 
                 if reward < -1:
                     reward = -1
-                else:
+                elif reward > 1:
                     reward = 1
+                else:
+                    reward = 0
 
                 episode_reward += reward
                 memory.add((state, action, reward, next_state, done)) 
@@ -182,7 +186,7 @@ class Env():
         with torch.no_grad():
             for _ in range(200):
                 self.env.render()
-                action = agent.get_action(state, 0)
+                action = agent.get_action(state, 1.0)
                 next_state, reward, done, info, _ = self.env.step(action)
                 state = np.reshape(next_state, [1, 4])
                 
@@ -192,7 +196,7 @@ class Env():
 
 if __name__ == "__main__":
     print("start dqn pole problem")
-    is_train = True
+    is_train = False
     if is_train:
         learning_rate = 1e-6         # Q-networkの学習係数
         agent = Agent(learning_rate)
