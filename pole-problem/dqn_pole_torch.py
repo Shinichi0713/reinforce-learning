@@ -159,16 +159,16 @@ class Env():
                     agent.replay_train(memory, batch_size, gamma)
                     epsilon *= 0.95
             
-            # 1施行終了時の処理
-            if done:
-                total_reward_vec = np.hstack((total_reward_vec[1:], episode_reward))  # 報酬を記録
-                print('%d Episode finished after %f time steps / mean %f' % (episode, t + 1, total_reward_vec.mean()))
-                break
+                # 1施行終了時の処理
+                if done:
+                    total_reward_vec = np.hstack((total_reward_vec[1:], episode_reward))  # 報酬を記録
+                    print('%d Episode finished after %f time steps / mean %f' % (episode, t + 1, total_reward_vec.mean()))
+                    break
 
             # 収束判断
             # if total_reward_vec.mean() >= goal_average_reward:
             print('Episode %d train agent successfuly!' % episode)
-            islearned = True
+            # islearned = True
             # モデルパラメータ保存
             agent.save_nn()
 
