@@ -27,7 +27,6 @@ Q学習の更新式
 
 →本当はエージェントは状態Aでは右を選んだほうが良い
 
-
 報酬テーブル
 
 | **a**0 | **a**1 | **a**2 |
@@ -35,13 +34,11 @@ Q学習の更新式
 | -1           | 1            | -0.1         |
 | 0.9          | -0.5         | -0.2         |
 
-
 ![1733781033656](image/6_double_network/1733781033656.png)
 
 **−**0.05**=**(**−**1**+**0.9**)**/**2**、**0.25**=**(**1**−**0.5**)**/**2**, **−**0.15**=**(**−**0.1**−**0.2**)**/**2**
 
 この状況では**Q**(**A**,**L**e**f**t**)**>**0→左のほうが良い**
-
 
 ## Double Deep Q Network
 
@@ -61,3 +58,80 @@ Q学習の更新式
 Q Networkの**S**t**+**1における行動価値を最大化する行動**a**=**argmax**a**Q**(**S**t**+**1**,**a**;**θ**)**を用いてTD ターゲットの値を決める
 
 Target Networkの最大行動価値を用いるのではなく、Q Networkを組み合わせることでQ学習の特徴（最大行動価値を使う）を維持しながら、過剰評価を軽減
+
+
+## 更新式の比較
+
+学習を安定させるための工夫として **Fixed Target Q-Network**
+
+DQN
+
+![1735073654373](image/6_double_network/1735073654373.png)
+
+double DQN
+
+![1735073672928](image/6_double_network/1735073672928.png)
+
+
+> その低減策として行動決定をQ-networkによって行い、Q(s, a)の評価はtarget-Q-network によって行うDouble-Q-learingの適用を提案しました。
+
+**Dueling-network[アーキテクチャ](http://d.hatena.ne.jp/keyword/%A5%A2%A1%BC%A5%AD%A5%C6%A5%AF%A5%C1%A5%E3)ではQネットワークが出力する"状態価値 V(s)" と "アドバンテージ A(s, a)" の和をとったものをQ(s, a)**
+
+![1735074343176](image/6_double_network/1735074343176.png)
+
+##### アドバンテージとは?
+
+アドバンテージA(s, a)とは状態行動価値Q(s, a)から状態価値V(s)を引いた値
+
+**Q**(**s**,**a**)**=**V**(**s**)**+**A**(**s**,**a**)Q(s,a)=V(s)+A(s,a)
+
+状態価値V(s)とアドバンテージA(s, a)を分けて学習する[アーキテクチャ](http://d.hatena.ne.jp/keyword/%A5%A2%A1%BC%A5%AD%A5%C6%A5%AF%A5%C1%A5%E3)は、どのような行動をとっても価値がほとんど変わらないような状態において学習を促進する
+
+
+実装コード
+
+```}
+import tensorflow as tf
+import tensorflow.keras.layers as kl
+
+
+class DuelingQNetwork(tf.keras.Model, SamplingMixin):
+
+    def __init__(self, actions_space):
+
+        super(DuelingQNetwork, self).__init__()
+        self.action_space = actions_space
+        self.conv1 = kl.Conv2D(32, 8, strides=4, activation="relu",
+                               kernel_initializer="he_normal")
+        self.conv2 = kl.Conv2D(64, 4, strides=2, activation="relu",
+                               kernel_initializer="he_normal")
+        self.conv3 = kl.Conv2D(64, 3, strides=1, activation="relu",
+                               kernel_initializer="he_normal")
+        self.flatten1 = kl.Flatten()
+        self.dense1 = kl.Dense(512, activation="relu",
+                               kernel_initializer="he_normal")
+        self.value = kl.Dense(1, kernel_initializer="he_normal")
+        self.dense2 = kl.Dense(512, activation="relu",
+                               kernel_initializer="he_normal")
+        self.advantages = kl.Dense(self.action_space,
+                                   kernel_initializer="he_normal")
+      
+    @tf.function
+    def call(self, x):
+
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.flatten1(x)
+
+        x1 = self.dense1(x)
+        value = self.value(x1)
+
+        x2 = self.dense2(x)
+        advantages = self.advantages(x2)
+        advantages_scaled = advantages - tf.reduce_mean(advantages, axis=1, keepdims=True)
+      
+        q = value + advantages_scaled
+
+        return q
+```
