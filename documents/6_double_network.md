@@ -59,7 +59,6 @@ Q Networkの**S**t**+**1における行動価値を最大化する行動**a**=**
 
 Target Networkの最大行動価値を用いるのではなく、Q Networkを組み合わせることでQ学習の特徴（最大行動価値を使う）を維持しながら、過剰評価を軽減
 
-
 ## 更新式の比較
 
 学習を安定させるための工夫として **Fixed Target Q-Network**
@@ -71,7 +70,6 @@ DQN
 double DQN
 
 ![1735073672928](image/6_double_network/1735073672928.png)
-
 
 > その低減策として行動決定をQ-networkによって行い、Q(s, a)の評価はtarget-Q-network によって行うDouble-Q-learingの適用を提案しました。
 
@@ -97,9 +95,9 @@ Q(s, a)を直接出力する[DQN](http://d.hatena.ne.jp/keyword/DQN)[アーキ�
 
 ![1735075246467](image/6_double_network/1735075246467.png)
 
-Dueling Networkは、Q値を状態価値関数 V(s)V(s) とアドバンテージ関数 A(s,a)A(s, a) に分けて学習する手法
+Dueling Networkは、Q値を状態価値関数 V(s)V(s) とアドバンテージ関数 A(s,a) に分けて学習する手法
 
-アドバンテージ関数 A(s,a)A(s, a) は、特定の行動 aa が他の行動と比べてどれだけ良いかを示す値
+アドバンテージ関数 A(s,a) は、特定の行動 aa が他の行動と比べてどれだけ良いかを示す値
 
 具体的には、状態 s における行動 aの相対的な価値を表します。これに対して、状態価値関数 V(s) は、状態 s にいること自体の価値
 
@@ -130,7 +128,7 @@ class DuelingQNetwork(tf.keras.Model, SamplingMixin):
                                kernel_initializer="he_normal")
         self.advantages = kl.Dense(self.action_space,
                                    kernel_initializer="he_normal")
-      
+    
     @tf.function
     def call(self, x):
 
@@ -145,8 +143,21 @@ class DuelingQNetwork(tf.keras.Model, SamplingMixin):
         x2 = self.dense2(x)
         advantages = self.advantages(x2)
         advantages_scaled = advantages - tf.reduce_mean(advantages, axis=1, keepdims=True)
-      
+    
         q = value + advantages_scaled
 
         return q
 ```
+
+
+
+### DDQNアルゴリズム
+
+1. 2つの独立したQ関数、Q1とQ2を初期化する。
+2. エージェントは状態sで行動aを選択する。
+3. 環境から次の状態s’と報酬rを観測する。
+4. Q1とQ2のうちの1つをランダムに選択して、次の状態s’での最大Q値を求める。例えば、Q1を選択した場合、Q2(s’, argmax(Q1(s’, a’)))を計算する。
+5. Q1とQ2の平均値を使って、現在の状態sでのQ値を更新する。具体的には、Q1(s, a) = Q1(s, a) + α * (r + γ * Q2(s’, argmax(Q1(s’, a’))) – Q1(s, a))とする。
+6. 学習を繰り返し、Q1とQ2を交互に更新する。
+
+Qを入れ替えて、たまたまを平準化するというような意味っぽい。
